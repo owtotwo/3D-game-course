@@ -105,3 +105,9 @@ public class Revolve : MonoBehaviour {
 只创造了些游戏对象
 
 ![预览图](./牧师与魔鬼预览图.png)
+
+> 更新
+
+![gif图](./牧师与魔鬼游戏.gif)
+
+代码在[Code文件夹](./Code)中。
