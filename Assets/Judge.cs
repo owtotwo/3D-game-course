@@ -6,26 +6,26 @@ using Com.Mygame;
 public class Judge : MonoBehaviour {
     public int pointToWin = 30;
 
-    private SceneController scene;
+    SceneController sc;
 
     private void Awake() {
-        scene = SceneController.getInstance();
-        scene.setJudge(this);
+        sc = Singleton<SceneController>.Instance;
+        sc.setJudge(this);
     }
 
     void Start () {
-        scene.nextRound();
-	}
-	
+        sc.nextRound(); // 默认开始第一关  
+    }
+    // 击中飞碟得分  
     public void scoreADisk() {
-        int updatepoint = scene.getPoint() + scene.getGameModel().gethitpoint();
-        scene.setPoint(updatepoint);
-        if (scene.getRound() == 1 && scene.getPoint() > pointToWin) {
-            scene.nextRound();
+        int updatepoint = sc.getPoint() + sc.getGameModel().gethitpoint();
+        sc.setPoint(updatepoint);
+        if (sc.getRound() == 1 && sc.getPoint() > pointToWin) {
+            sc.nextRound();
         }
     }
-
+    // 掉落飞碟失分 
     public void failADisk() {
-        scene.setPoint(scene.getPoint() - scene.getGameModel().gethitpoint());
+        sc.setPoint(sc.getPoint() - sc.getGameModel().gethitpoint());
     }
 }

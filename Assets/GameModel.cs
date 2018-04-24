@@ -11,29 +11,31 @@ public class GameModel : MonoBehaviour {
 
     private List<GameObject> disks = new List<GameObject>();
     private List<int> diskIds = new List<int>();
-    private int diskScale;
+    private int diskScale;    // 飞碟大小  
     private int hitpoint;
-    private int emitNumber;
+    private int emitNumber;   // 发射数量  
     private bool emitEnable;
     private int gameover=0;
+    private int physicsortransform;
+    DiskFactory df;
 
-    private SceneController scene;
+    SceneController sc;
 
-    private void Awake()
-    {
-        scene = SceneController.getInstance();
-        scene.setGameModel(this);
+    private void Awake() {
+        sc = Singleton<SceneController>.Instance;
+        sc.setGameModel(this);
+        df = Singleton<DiskFactory>.Instance;
     }
 
     private void Start()
     {
         setting(1);
     }
-    
+    // 初始化设置
     public void setting(int num) {
         emitNumber = num;
     }
-
+    // 准备下一次发射  
     public void prepareToEmitDisk()
     {
         if (!counting)
@@ -50,14 +52,21 @@ public class GameModel : MonoBehaviour {
     public void setDiskNum() {
         DiskFactory.setTotalDisk(0);
     }
-
+    // 发射飞碟  
     void emitDisks()
     {
+        physicsortransform = sc.getPhysicsorTransform();
         if (DiskFactory.getTotalDisk() < 5) {
             for (int i = 0; i < emitNumber; i++) {
-                diskIds.Add(DiskFactory.getInstance().getDisk());
-                disks.Add(DiskFactory.getInstance().getDiskObject(diskIds[i]));
-                disks[i].AddComponent<DiskController>();
+                diskIds.Add(df.getDisk());
+                disks.Add(df.getDiskObject(diskIds[i]));
+                if (physicsortransform == 0) {
+                    disks[i].AddComponent<DiskController>();
+                }
+                else {
+                    disks[i].AddComponent<PhysicsDiskController>();
+                    disks[i].AddComponent<Rigidbody>();
+                }
                 disks[i].SetActive(true);
             }
         }
@@ -65,10 +74,10 @@ public class GameModel : MonoBehaviour {
             gameover = 1;
         }
     }
-
+    // 回收飞碟  
     void freeADisk(int i)
     {
-        DiskFactory.getInstance().free(diskIds[i]);
+        df.free(diskIds[i]);
         disks.RemoveAt(i);
         diskIds.RemoveAt(i);
     }
@@ -85,7 +94,7 @@ public class GameModel : MonoBehaviour {
             counting = false;
             if (emitEnable)
             {
-                emitDisks();
+                emitDisks(); // 发射飞碟  
                 emitEnable = false;
             }
         }
@@ -99,24 +108,37 @@ public class GameModel : MonoBehaviour {
 		for (int i = 0; i < disks.Count; i++)
         {
             hitpoint = 10;
-            if (disks[i].transform.position.y > 5) {
+            if (disks[i].transform.position.y > 5 || disks[i].transform.position.y < 0) {
                 if (disks[i].GetComponent<Renderer>().material.color == Color.black) {
                     Debug.Log("hit to free,color is : black");
                     hitpoint = 20;
                 }
-                Debug.Log("too high free");
-                scene.getJudge().failADisk();   // 失分  
-                Destroy(disks[i].GetComponent<DiskController>());
+                Debug.Log("too high free or too low free"); // 飞碟飞太高不在场景中  
+                sc.getJudge().failADisk();   // 失分  
+                if (physicsortransform == 0) {
+                    Destroy(disks[i].GetComponent<DiskController>());
+                }
+                else {
+                    Destroy(disks[i].GetComponent<PhysicsDiskController>());
+                    Destroy(disks[i].GetComponent<Rigidbody>());
+                }
                 freeADisk(i);
             } else
             if (!disks[i].activeInHierarchy)
             {
+                //  击中飞碟
                 if (disks[i].GetComponent<Renderer>().material.color == Color.black) {
                     Debug.Log("hit to free,color is : black");
                     hitpoint = 20;
                 }
-                scene.getJudge().scoreADisk();
-                Destroy(disks[i].GetComponent<DiskController>());
+                //得分
+                sc.getJudge().scoreADisk();
+                if (physicsortransform == 0) {
+                    Destroy(disks[i].GetComponent<DiskController>());
+                } else {
+                    Destroy(disks[i].GetComponent<PhysicsDiskController>());
+                    Destroy(disks[i].GetComponent<Rigidbody>());
+                }
                 freeADisk(i);
             }
         }

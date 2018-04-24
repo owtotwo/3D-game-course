@@ -12,16 +12,31 @@ public class UserInterface : MonoBehaviour {
     private int round;  // 当前回合  
 
     public GameObject bullet;
-    
+
+    SceneController sc;
     private IUserInterface userInt;
     private IQueryStatus queryInt;
 
+    private void Awake() {
+        sc = Singleton<SceneController>.Instance;
+    }
+
     void Start () {
         bullet = GameObject.Instantiate(bullet) as GameObject;
-        userInt = SceneController.getInstance() as IUserInterface;
-        queryInt = SceneController.getInstance() as IQueryStatus;
+        userInt = sc as IUserInterface;
+        queryInt = sc as IQueryStatus;
+        sc.setPhysicsorTransform(0);
     }
-    
+
+    void OnGUI() {
+        if (GUI.Button(new Rect(20, 100, 180, 30),"点击飞碟可以使用物理运动")) {
+            sc.setPhysicsorTransform(1);
+        }
+        if (GUI.Button(new Rect(20, 140, 180, 30),"点击飞碟可以使用运动学变换")) {
+            sc.setPhysicsorTransform(0);
+        }
+    }
+
     void Update() {
         if (Input.GetKeyDown("space")) {
             userInt.emitDisk();    // 发射飞碟
@@ -34,7 +49,8 @@ public class UserInterface : MonoBehaviour {
 
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit) && hit.collider.gameObject.tag == "Finish") {
-                    hit.collider.gameObject.SetActive(false);
+                // 击中飞碟设置为不活跃，自动回收  
+                hit.collider.gameObject.SetActive(false);
             }
         }
         if (round == 1 && queryInt.checkgameover() == 1) {
@@ -45,9 +61,11 @@ public class UserInterface : MonoBehaviour {
         else {
             roundText.text = "Round: " + queryInt.getRound().ToString();
             scoreText.text = "Score: " + queryInt.getPoint().ToString();
+            // 如果回合更新，主提示显示新回合  
             if (round != queryInt.getRound()) {
                 round = queryInt.getRound();
                 queryInt.setTotalDisk();
+                sc.setPhysicsorTransform(0);
                 mainText.text = "Round " + round.ToString() + " begins!";
                 if (round == 2)
                     mainText.text += "\nnice! go 2 round!";
