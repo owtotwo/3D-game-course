@@ -27,4 +27,4 @@ this._ai = new GenericAi(new IAiComponent[] {
 
 最后，整个效果如下：
 
-![TankWithAI](C:\Users\80642\Desktop\3D-game-course\TankWithAI.gif)
+![TankWithAI](TankWithAI.gif)
